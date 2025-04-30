@@ -1,4 +1,6 @@
 class SovosClient
+  class ApiError < StandardError; end
+
   attr_reader :company, :cart_payload
   include HTTParty
   base_uri "https://gtduat.sovos.com/Twe/api/rest/"
@@ -24,11 +26,12 @@ class SovosClient
       response.parsed_response
     else
       # since we do not have api credentials right now, we are returning a dummy response instead of returning the error
-      dummy_response
-      # raise "Failed to calculate tax: #{response.code} #{response.body}"
+      # dummy_response
+      raise ApiError, "Failed to calculate tax: #{response.code} #{response.body}"
     end
   end
 
+  # TODO: remove this once we have api credentials
   def dummy_response
     {
       "txAmt" => 100,

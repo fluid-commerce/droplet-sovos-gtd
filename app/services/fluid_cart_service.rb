@@ -5,9 +5,7 @@ class FluidCartService
   end
 
   def update_cart
-    response = FluidClient.new.put("/api/carts/#{@cart_token}", body: formatted_payload)
-    debugger
-    response
+    FluidClient.new.put("/api/carts/#{@cart_token}", body: formatted_payload)
   end
 
 private

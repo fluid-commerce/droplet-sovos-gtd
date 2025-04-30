@@ -3,40 +3,28 @@ require "base64"
 
 class GtdAuthService
   def initialize(company)
-    @company = company
-    settings = company.settings
-    @username = settings["username"]
-    @password = settings["password"]
-    @hmac_key = settings["hmac_key"]
+    settings = company.settings || {}
+    @username = settings["username"].to_s
+    @password = settings["password"].to_s
+    @hmac_key = settings["hmac_key"].to_s
   end
 
-  def generate_auth_header(request_suffix = "calcTax/doc")
-    timestamp = Time.now.utc.iso8601
-    security_subject = "#{@username}#{@password}"
-    twe_url_path_body = "/Twe/api/rest/#{request_suffix}"
-
-    plain_string_signature = determine_plain_string_hmac_signature(
-      timestamp: timestamp,
-      security_subject: security_subject,
-      twe_url_path_body: twe_url_path_body
-    )
-
-    hmac_digest = generate_hmac_digest(plain_string_signature)
+  def generate_auth_header(request_suffix = "")
+    timestamp = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    digest = generate_hmac_digest(timestamp, request_suffix)
 
     {
-      auth_header: "TAX #{@username}:#{hmac_digest}",
       timestamp: timestamp,
+      auth_header: "TAX #{@username}:#{digest}",
     }
   end
 
 private
 
-  def determine_plain_string_hmac_signature(timestamp:, security_subject:, twe_url_path_body:)
-    "POST" + "application/json" + timestamp + twe_url_path_body + security_subject
-  end
+  def generate_hmac_digest(timestamp, request_suffix)
+    return "" if @hmac_key.empty?
 
-  def generate_hmac_digest(data)
-    # Use SHA1 as specified in the JS code
+    data = "POSTapplication/json#{timestamp}/Twe/api/rest/#{request_suffix}#{@username}#{@password}"
     digest = OpenSSL::HMAC.digest("sha1", @hmac_key, data)
     Base64.strict_encode64(digest)
   end
