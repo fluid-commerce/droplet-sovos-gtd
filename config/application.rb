@@ -25,5 +25,7 @@ module DropletTemplate
     config.action_view.field_error_proc = Proc.new { |html_tag, instance|
       "<span class='text-orange-600'>#{html_tag}</span>".html_safe
     }
+
+    config.action_dispatch.default_headers = {}
   end
 end
